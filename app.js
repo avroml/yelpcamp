@@ -3,6 +3,7 @@ const Campground =              require("./models/campground");
 const LocalStrategy =           require("passport-local");
 const methodOverride =          require("method-override");
 const Comment =                 require("./models/comment");
+const flash =                   require("connect-flash");
 const bodyParser =              require("body-parser");
 const User =                    require("./models/user");
 const passport =                require("passport");
@@ -21,6 +22,7 @@ app.use(bodyParser.urlencoded({extended:true}));
 app.use(methodOverride("_method"));
 app.set("view engine", "ejs");
 app.use(express.static(__dirname+"/public"));
+app.use(flash());
 // seedDB();
 
 // passport config
@@ -37,6 +39,8 @@ passport.deserializeUser(User.deserializeUser());
 
 app.use((req, res, next) => {
     res.locals.currentUser = req.user;
+    res.locals.error = req.flash("error");
+    res.locals.success = req.flash("success");
     next();
 });
 app.use(indexRoutes);

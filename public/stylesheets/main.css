@@ -13,3 +13,12 @@
 .delete-form {
     display: inline;
 }
+
+.center {
+    display: block;
+    text-align: center;
+}
+
+#camp-name-index {
+    margin-bottom: 0.2rem;
+}

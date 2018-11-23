@@ -28,8 +28,7 @@ router.post("/", middleware.isLoggedIn, (req, res) => {
        if(err) {
            console.log(err);
        } else {
-           console.log("Campground added: ");
-           console.log(newCampground);
+            req.flash("success", "Campground " + newCampground.name + " added! Hoorah!");
             res.redirect("/campgrounds");
        }
    });
@@ -74,9 +73,10 @@ router.get("/:id/edit", middleware.isCampgroundOwner, (req, res) => {
 router.put("/:id", middleware.isCampgroundOwner, (req, res) => {
     Campground.findByIdAndUpdate(req.params.id, req.body.campground, (err, updatedCampground) => {
         if(err) {
-            console.log(err);
+            req.flash("error", "Something went wrong: " + err);
             res.redirect("/campgrounds");
         } else {
+            req.flash("success", "Campground " + updatedCampground.name + " was updated. Yey!");
             res.redirect("/campgrounds/" + req.params.id);
         }
     });
@@ -85,9 +85,10 @@ router.put("/:id", middleware.isCampgroundOwner, (req, res) => {
 router.delete("/:id", middleware.isCampgroundOwner, (req, res) => {
     Campground.findByIdAndRemove(req.params.id, err => {
         if(err) {
-            console.log(err);
+            req.flash("error", "Something went wrong: " + err);
             res.redirect("/campgrounds");
         } else {
+            req.flash("success", "Campground was deleted. Woosh!");
             res.redirect("/campgrounds");
         }
     });
