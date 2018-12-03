@@ -12,16 +12,20 @@ router.get("/", (req, res) =>{
 
 // auth routes
 router.get("/register", (req, res) => {
-    res.render("register");
+    res.render("register", {page: 'register'});
 });
 
 router.post("/register", (req, res) => {
     let newUser = new User({username: req.body.username});
     User.register(newUser, req.body.password, (err, user) => {
-        if(err) {
-            // return res.render("register", {"error": err.message});
-            req.flash("error", "Something went wrong: " + err.message);
-            return res.render("register");
+        if(err){
+        console.log(err);
+        return res.render("register", {error: err.message});
+
+        // if(err) {
+        //     // return res.render("register", {"error": err.message});
+        //     req.flash("error", "Something went wrong: " + err.message);
+        //     return res.render("register");
         }
         passport.authenticate("local")(req, res, () => {
             req.flash("success", "You're registered and logged in. Welcome, " + user.username + "!");
@@ -31,7 +35,7 @@ router.post("/register", (req, res) => {
 });
 
 router.get("/login", (req, res) => {
-    res.render("login");
+    res.render("login", {page: 'login'});
 });
 router.post("/login", passport.authenticate('local', {
     successRedirect: '/campgrounds',
