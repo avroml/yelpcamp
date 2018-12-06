@@ -1,3 +1,4 @@
+require('dotenv').config();
 const passportLocalMongoose =   require("passport-local-mongoose");
 const Campground =              require("./models/campground");
 const LocalStrategy =           require("passport-local");

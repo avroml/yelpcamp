@@ -22,3 +22,9 @@
 #camp-name-index {
     margin-bottom: 0.2rem;
 }
+
+/* Google Maps */
+#map {
+    height: 400px;
+    width: 100%;
+}
