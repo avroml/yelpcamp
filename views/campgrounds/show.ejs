@@ -18,7 +18,7 @@
                     <h4 class="pull-right">$<%=campground.price%>/night</h4>
                     <h4> <a href="#"><%=campground.name%></a></h4>
                     <p><%=campground.description%></p>
-                    <p><em>Submitted by <%=campground.author.username%> </em></p>
+                    <p><em>Submitted by <%=campground.author.username%>, <%= moment(campground.createdAt).fromNow() %> </em></p>
                         <% if(currentUser && campground.author.id.equals(currentUser._id)){ %>
                             <a class="btn btn-warning" href="/campgrounds/<%=campground._id%>/edit">Edit</a>
                             <form class="delete-form" action="/campgrounds/<%=campground._id%>?_method=DELETE" method=POST>
@@ -35,8 +35,10 @@
                             <%campground.comments.forEach(function(comment) {%>
                     <div class="row">
                         <div class="col-md-12">
-                            <p ><strong><%=comment.author.username%></strong> </p>
-                            <span class="pull-right"> 10 days ago </span>
+                            <p ><strong><%=comment.author.username%></strong> 
+                            <span class="pull-right"> <em><%= moment(comment.createdAt).fromNow() %></em> </span>
+                            </p>
+                            
                             <p > <%=comment.text%></p>
                             <% if(currentUser && comment.author.id.equals(currentUser._id)){ %>    
                                 <a class="btn btn-xs btn-warning" 

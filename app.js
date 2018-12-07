@@ -24,8 +24,9 @@ app.use(methodOverride("_method"));
 app.set("view engine", "ejs");
 app.use(express.static(__dirname+"/public"));
 app.use(flash());
-// seedDB();
 
+
+app.locals.moment = require('moment');
 // passport config
 app.use(require("express-session")({
     secret: "I can\'t get no satisfaction, she loves you, ye, ye, ye!",
