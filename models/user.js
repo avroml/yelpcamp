@@ -3,6 +3,10 @@ const passportLocalMongoose =   require("passport-local-mongoose");
 const UserSchema = new mongoose.Schema({
     username: String,
     password: String,
+    firstName: String,
+    lastName: String,
+    email: String,
+    avatar: {type: String, default: "https://avatars.alphacoders.com/avatars/view/161515"},
     isAdmin: {type: Boolean, default: false}
 });
 
