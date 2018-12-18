@@ -13,6 +13,29 @@ const options = {
 };
  
 const geocoder = NodeGeocoder(options);
+
+const multer = require('multer');
+let storage = multer.diskStorage({
+  filename: (req, file, callback) => {
+    callback(null, Date.now() + file.originalname);
+  }
+});
+let imageFilter = (req, file, cb) => {
+    // accept image files only
+    if (!file.originalname.match(/\.(jpg|jpeg|png|gif)$/i)) {
+        return cb(new Error('Only image files are allowed!'), false);
+    }
+    cb(null, true);
+};
+let upload = multer({ storage: storage, fileFilter: imageFilter})
+
+const cloudinary = require('cloudinary');
+cloudinary.config({ 
+  cloud_name: 'develo132', 
+  api_key: process.env.CLOUDINARY_API_KEY, 
+  api_secret: process.env.CLOUDINARY_API_SECRET
+});
+
 // index page - show all campgrounds
 router.get("/", (req, res) => {
     // get all campgrounds from the db
@@ -25,41 +48,77 @@ router.get("/", (req, res) => {
     })
     
 });
-//CREATE - add new campground to DB
-router.post("/", middleware.isLoggedIn, (req, res) =>{
-  // get data from form and add to campgrounds array
-  let name = req.body.name;
-  let price = req.body.price;
-  let image = req.body.image;
-  let desc = req.body.description;
-  let author = {
-      id: req.user._id,
-      username: req.user.username
-  }
-  geocoder.geocode(req.body.location, function (err, data) {
-    if (err || !data.length) {
-        console.log(err);
-        req.flash('error', 'Invalid address');
-        return res.redirect('back');
-    }
-    let lat = data[0].latitude;
-    let lng = data[0].longitude;
-    let location = data[0].formattedAddress;
-    let newCampground = {name: name, price: price, image: image, description: desc, author:author, location: location, lat: lat, lng: lng};
-    // Create a new campground and save to DB
-    Campground.create(newCampground, (err, newlyCreated) =>{
-        if(err){
-            console.log(err);
-        } else {
-            //redirect back to campgrounds page
-            req.flash("success", "Campground " + newCampground.name + " added! Hoorah!");
-            console.log(newlyCreated);
-            res.redirect("/campgrounds");
-        }
-    });
-  });
-});
+// //CREATE - add new campground to DB - deprecated, doesn't contain img upload functionality
+// router.post("/", middleware.isLoggedIn, upload.single("image"), (req, res) =>{
+//   // get data from form and add to campgrounds array
+//   let name = req.body.name;
+//   let price = req.body.price;
+//   let image = req.body.image;
+//   let desc = req.body.description;
+//   let author = {
+//       id: req.user._id,
+//       username: req.user.username
+//   }
+//   geocoder.geocode(req.body.location, function (err, data) {
+//     if (err || !data.length) {
+//         console.log(err);
+//         req.flash('error', 'Invalid address');
+//         return res.redirect('back');
+//     }
+//     let lat = data[0].latitude;
+//     let lng = data[0].longitude;
+//     let location = data[0].formattedAddress;
+//     let newCampground = {name: name, price: price, image: image, description: desc, author:author, location: location, lat: lat, lng: lng};
+//     // Create a new campground and save to DB
+//     Campground.create(newCampground, (err, newlyCreated) =>{
+//         if(err){
+//             console.log(err);
+//         } else {
+//             //redirect back to campgrounds page
+//             req.flash("success", "Campground " + newCampground.name + " added! Hoorah!");
+//             console.log(newlyCreated);
+//             res.redirect("/campgrounds");
+//         }
+//     });
+//   });
+// });
+//CREATE - add new campground to DB, contains cloudinary and google maps
 
+router.post("/", middleware.isLoggedIn, upload.single('image'), (req, res) =>{
+    cloudinary.v2.uploader.upload(req.file.path, (err, result) => {
+      if(err) {
+        req.flash('error', err.message);
+        return res.redirect('back');
+      }
+      geocoder.geocode(req.body.location, (err, data) => {
+        if (err || !data.length) {
+          req.flash('error', 'Invalid address');
+          return res.redirect('back');
+        }
+            req.body.campground.lat = data[0].latitude;
+            req.body.campground.lng = data[0].longitude;
+            req.body.campground.location = data[0].formattedAddress;
+        
+            // add cloudinary url for the image to the campground object under image property
+          req.body.campground.image = result.secure_url;
+          // add image's public_id to campground object
+         req.body.campground.imageId = result.public_id;
+          // add author to campground
+          req.body.campground.author = {
+            id: req.user._id,
+            username: req.user.username
+          }
+          Campground.create(req.body.campground, (err, campground) => {
+            if (err) {
+              req.flash('error', err.message);
+              return res.redirect('back');
+            }
+            res.redirect('/campgrounds/' + campground.id);
+          });
+      });
+      
+    });
+});
 
 router.get("/new", middleware.isLoggedIn, (req, res) => {
   res.render("campgrounds/new"); 
@@ -79,36 +138,57 @@ router.get("/:id", (req, res) => {
 // edit campground route
 router.get("/:id/edit", middleware.isCampgroundOwner, (req, res) => {
     Campground.findById(req.params.id, (err, foundCampground) => {
-    
+        if (err) {
+          req.flash('error', 'Something went wrong: ' + err.message);
+          return res.redirect('back');
+        }
         res.render("campgrounds/edit", {campground: foundCampground});
-    
     });
-
 });
 
 
-// UPDATE CAMPGROUND ROUTE
-router.put("/:id", middleware.isCampgroundOwner, function(req, res){
-  geocoder.geocode(req.body.location, function (err, data) {
-    if (err || !data.length) {
-      req.flash('error', 'Invalid address');
-      return res.redirect('back');
-    }
-    req.body.campground.lat = data[0].latitude;
-    req.body.campground.lng = data[0].longitude;
-    req.body.campground.location = data[0].formattedAddress;
+// //UPDATE CAMPGROUND ROUTE
 
-    Campground.findByIdAndUpdate(req.params.id, req.body.campground, function(err, campground){
+router.put("/:id", middleware.isCampgroundOwner, upload.single('image'), function(req, res){
+    Campground.findById(req.params.id, async (err, campground) => {
         if(err){
+            console.log(err);
             req.flash("error", err.message);
             res.redirect("back");
         } else {
-            req.flash("success","Successfully Updated!");
+            if (req.file) {
+                try {
+                    await cloudinary.v2.uploader.destroy(campground.imageId);
+                    let result = await cloudinary.v2.uploader.upload(req.file.path);
+                    campground.imageId = result.public_id;
+                    campground.image = result.secure_url;
+                } catch(err) {
+                    req.flash("error", err.message);
+                    return res.redirect("back");
+                }
+            }
+            
+            geocoder.geocode(req.body.campground.location, (err, data) => {
+                if(err || !data.length) {
+                    console.log(err);
+                    req.flash('error', 'Invalid address');
+                    return res.redirect('back');
+                }
+            campground.lat = data[0].latitude;
+            campground.lng = data[0].longitude;
+            campground.location = data[0].formattedAddress;
+            campground.name = req.body.campground.name;
+            campground.description = req.body.campground.description;
+            campground.price = req.body.campground.price;
+            campground.save();
+            req.flash("success", "Successfully Updated!");
             res.redirect("/campgrounds/" + campground._id);
+            });
         }
     });
-  });
 });
+
+
 // destroy campground route
 router.delete("/:id", middleware.isCampgroundOwner, (req, res) => {
     Campground.findByIdAndRemove(req.params.id, err => {
