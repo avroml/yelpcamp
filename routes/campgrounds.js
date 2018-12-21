@@ -48,40 +48,7 @@ router.get("/", (req, res) => {
     })
     
 });
-// //CREATE - add new campground to DB - deprecated, doesn't contain img upload functionality
-// router.post("/", middleware.isLoggedIn, upload.single("image"), (req, res) =>{
-//   // get data from form and add to campgrounds array
-//   let name = req.body.name;
-//   let price = req.body.price;
-//   let image = req.body.image;
-//   let desc = req.body.description;
-//   let author = {
-//       id: req.user._id,
-//       username: req.user.username
-//   }
-//   geocoder.geocode(req.body.location, function (err, data) {
-//     if (err || !data.length) {
-//         console.log(err);
-//         req.flash('error', 'Invalid address');
-//         return res.redirect('back');
-//     }
-//     let lat = data[0].latitude;
-//     let lng = data[0].longitude;
-//     let location = data[0].formattedAddress;
-//     let newCampground = {name: name, price: price, image: image, description: desc, author:author, location: location, lat: lat, lng: lng};
-//     // Create a new campground and save to DB
-//     Campground.create(newCampground, (err, newlyCreated) =>{
-//         if(err){
-//             console.log(err);
-//         } else {
-//             //redirect back to campgrounds page
-//             req.flash("success", "Campground " + newCampground.name + " added! Hoorah!");
-//             console.log(newlyCreated);
-//             res.redirect("/campgrounds");
-//         }
-//     });
-//   });
-// });
+
 //CREATE - add new campground to DB, contains cloudinary and google maps
 
 router.post("/", middleware.isLoggedIn, upload.single('image'), (req, res) =>{
@@ -127,11 +94,11 @@ router.get("/new", middleware.isLoggedIn, (req, res) => {
 router.get("/:id", (req, res) => {
     Campground.findById(req.params.id).populate("comments").exec((err,foundCampground) => {
         if(err) {
-            console.log(err);
-        } else {
-            console.log(foundCampground);
+            req.flash("error", err.message)
+            return res.redirect("back");
+        } 
             res.render("campgrounds/show", {campground:foundCampground});
-        }
+
     });
 });
 
@@ -209,7 +176,5 @@ router.delete("/:id", middleware.isCampgroundOwner, (req, res) => {
         }
     });
 });
-
-
 
 module.exports = router;

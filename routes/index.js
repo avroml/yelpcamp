@@ -28,6 +28,9 @@ router.post("/register", (req, res) => {
     if(req.body.adminCode === "SureWhyNot!") {
         newUser.isAdmin = true;
     }
+    if(req.body.avatar.length == 0) {
+        newUser.avatar = "https://res.cloudinary.com/develo132/image/upload/v1544966114/anyxcrui0elcrbor7e2n.jpg";
+    }
     User.register(newUser, req.body.password, (err, user) => {
         if(err){
         console.log(err);
