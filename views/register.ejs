@@ -2,7 +2,7 @@
     <div class="row">
         <h1 style="text-align: center">Sign Up</h1>
         <div style="width: 30%; margin: 25px auto;">
-            <form action="/register" method="post">
+            <form action="/register" method="POST" enctype="multipart/form-data">
                 <div class="form-group">
                     <label for="username">Username *</label>
                     <input class="form-control" type="text" name="username" id="username" placeholder="username" required autofocus>
@@ -22,7 +22,7 @@
                 </div>
                 <div class="form-group">
                     <label for="avatar">Image</label>
-                    <input class="form-control" type="url" name="avatar" id="avatar" placeholder="img url" >
+                    <input class="form-control" type="file" id="avatar" name="avatar" accept="image/*">
                 </div>
                 <div class="form-group">
                     <label for="email">Email *</label>

@@ -1,12 +1,33 @@
 const express = require("express");
 const router = express.Router();
 const passport = require("passport");
+const middleware = require("../middleware");
 const async = require("async");
 const nodemailer = require("nodemailer");
 const crypto = require("crypto");
 const Campground = require("../models/campground");
 const User = require("../models/user");
-const Comment = require("../models/comment");
+const multer = require('multer');
+let storage = multer.diskStorage({
+  filename: (req, file, callback) => {
+    callback(null, Date.now() + file.originalname);
+  }
+});
+let imageFilter = (req, file, cb) => {
+    // accept image files only
+    if (!file.originalname.match(/\.(jpg|jpeg|png|gif)$/i)) {
+        return cb(new Error('Only image files are allowed!'), false);
+    }
+    cb(null, true);
+};
+let upload = multer({ storage: storage, fileFilter: imageFilter});
+
+const cloudinary = require('cloudinary');
+cloudinary.config({ 
+  cloud_name: 'develo132', 
+  api_key: process.env.CLOUDINARY_API_KEY, 
+  api_secret: process.env.CLOUDINARY_API_SECRET
+});
 
 router.get("/", (req, res) =>{
     res.render("home");
@@ -17,19 +38,29 @@ router.get("/register", (req, res) => {
     res.render("register", {page: 'register'});
 });
 
-router.post("/register", (req, res) => {
+router.post("/register", upload.single('avatar'), async (req, res) => {
     let newUser = new User({
             username: req.body.username,
             firstName: req.body.firstName,
             lastName: req.body.lastName,
             email: req.body.email,
-            avatar: req.body.avatar
         });
     if(req.body.adminCode === "SureWhyNot!") {
         newUser.isAdmin = true;
     }
-    if(req.body.avatar.length == 0) {
+    if(!req.file) {
         newUser.avatar = "https://res.cloudinary.com/develo132/image/upload/v1544966114/anyxcrui0elcrbor7e2n.jpg";
+    }
+    if(req.file) {
+        await cloudinary.v2.uploader.upload(req.file.path, (err, result) => {
+            if(err) {
+                req.flash('error', err.message);
+                res.redirect('back');
+            }
+            if(result) {
+                newUser.avatar = result.secure_url;
+            }
+        });
     }
     User.register(newUser, req.body.password, (err, user) => {
         if(err){
@@ -43,9 +74,11 @@ router.post("/register", (req, res) => {
                 req.flash("success", "You're registered and logged in. Welcome, " + user.username + "!");
             }
             res.redirect("campgrounds");
+            
         });
     });
 });
+
 //login routes
 router.get("/login", (req, res) => {
     res.render("login", {page: 'login'});

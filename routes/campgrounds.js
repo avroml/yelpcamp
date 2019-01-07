@@ -1,4 +1,5 @@
 const express = require("express");
+const async = require("async");
 const router = express.Router();
 const Campground = require("../models/campground");
 const Comment = require("../models/comment");
@@ -27,7 +28,7 @@ let imageFilter = (req, file, cb) => {
     }
     cb(null, true);
 };
-let upload = multer({ storage: storage, fileFilter: imageFilter})
+let upload = multer({ storage: storage, fileFilter: imageFilter});
 
 const cloudinary = require('cloudinary');
 cloudinary.config({ 
@@ -45,7 +46,7 @@ router.get("/", (req, res) => {
         } else {
             res.render("campgrounds/index", {campgrounds: allCampgrounds, page: 'campgrounds'});
         }
-    })
+    });
     
 });
 
@@ -94,9 +95,9 @@ router.get("/new", middleware.isLoggedIn, (req, res) => {
 router.get("/:id", (req, res) => {
     Campground.findById(req.params.id).populate("comments").exec((err,foundCampground) => {
         if(err) {
-            req.flash("error", err.message)
+            req.flash("error", err.message);
             return res.redirect("back");
-        } 
+        } else
             res.render("campgrounds/show", {campground:foundCampground});
 
     });
@@ -117,7 +118,7 @@ router.get("/:id/edit", middleware.isCampgroundOwner, (req, res) => {
 //UPDATE CAMPGROUND ROUTE
 
 router.put("/:id", middleware.isCampgroundOwner, upload.single('image'), function(req, res){
-    Campground.findById(req.params.id, async (err, campground) => {
+    Campground.findById(req.params.id, async function (err, campground) {
         if(err){
             console.log(err);
             req.flash("error", err.message);

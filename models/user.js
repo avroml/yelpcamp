@@ -6,7 +6,7 @@ const UserSchema = new mongoose.Schema({
     firstName: String,
     lastName: String,
     email: {type: String, unique: true, required: true},
-    avatar: {type: String, default: "https://avatars.alphacoders.com/avatars/view/161515"},
+    avatar: String, 
     resetPasswordToken: String,
     resetPasswordExpires: Date,
     isAdmin: {type: Boolean, default: false}
