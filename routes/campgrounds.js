@@ -117,8 +117,8 @@ router.get("/:id/edit", middleware.isCampgroundOwner, (req, res) => {
 
 //UPDATE CAMPGROUND ROUTE
 
-router.put("/:id", middleware.isCampgroundOwner, upload.single('image'), function(req, res){
-    Campground.findById(req.params.id, async function (err, campground) {
+router.put("/:id", middleware.isCampgroundOwner, upload.single('image'), (req, res) => {
+    Campground.findById(req.params.id, async (err, campground) => {
         if(err){
             console.log(err);
             req.flash("error", err.message);

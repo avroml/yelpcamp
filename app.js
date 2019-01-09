@@ -12,6 +12,7 @@ const mongoose =                require("mongoose");
 const express =                 require("express");
 const seedDB =                  require("./seeds");
 const app =                     express();
+
 const commentRoutes = require("./routes/comments");
 const campgroundRoutes = require("./routes/campgrounds");
 const indexRoutes = require("./routes/index");

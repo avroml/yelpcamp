@@ -6,6 +6,7 @@ const async = require("async");
 const nodemailer = require("nodemailer");
 const crypto = require("crypto");
 const Campground = require("../models/campground");
+const Comment = require("../models/comment");
 const User = require("../models/user");
 const multer = require('multer');
 let storage = multer.diskStorage({
