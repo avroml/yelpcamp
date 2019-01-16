@@ -1,0 +1,40 @@
+<% include ../partials/header%>
+    <div class="row">
+        <h1 style="text-align: center">Edit user profile</h1>
+        <div style="width: 30%; margin: 25px auto;">
+            <form action="/users/<%=user._id%>?_method=PUT" id="userEdit" method="POST" enctype="multipart/form-data">
+                <div class="form-group">
+                    <label for="username">Username *</label>
+                    <input class="form-control" type="text" name="user[username]" id="username" value="<%=user.username%>" autofocus>
+                </div>
+                <div class="form-group">
+                    <label for="firstName">First name</label>
+                    <input class="form-control" type="text" name="user[firstName]" id="firstName" value="<%=user.firstName%>" >
+                </div>
+                <div class="form-group">
+                    <label for="lastName">Last name</label>
+                    <input class="form-control" type="text" name="user[lastName]" id="lastName" value="<%=user.lastName%>" >
+                </div>
+                <div class="form-group">
+                    <label for="avatar">Image</label>
+                    <input class="form-control" type="file" id="avatar" name="avatar" accept="image/*">
+                </div>
+                <div class="form-group">
+                    <label for="email">Email *</label>
+                    <input class="form-control" type="email" name="user[email]" id="email" value="<%=user.email%>">
+                </div>
+                <div class="form-group">
+                    <label for="aboutMe">About me</label>
+                    <textarea class="form-control" type="textarea" maxlength="450" rows="4" cols="50" name="user[aboutMe]" id="aboutMe"><%=user.aboutMe%></textarea>
+                </div>
+                <div class="form-group">
+                    <button class="btn btn-lg btn-primary btn-block">Save changes</button>
+                </div>
+            </form>
+            <a href="/forgot">Want to change your password?</a>
+            <br>
+            <a href="/campgrounds">Go back</a>
+            <p>* required</p>
+        </div>
+    </div>
+<% include ../partials/footer%>

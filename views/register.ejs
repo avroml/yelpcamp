@@ -2,7 +2,7 @@
     <div class="row">
         <h1 style="text-align: center">Sign Up</h1>
         <div style="width: 30%; margin: 25px auto;">
-            <form action="/register" method="POST" enctype="multipart/form-data">
+            <form action="/register" id="register" method="POST" enctype="multipart/form-data">
                 <div class="form-group">
                     <label for="username">Username *</label>
                     <input class="form-control" type="text" name="username" id="username" placeholder="username" required autofocus>
@@ -28,7 +28,10 @@
                     <label for="email">Email *</label>
                     <input class="form-control" type="email" name="email" id="email" placeholder="something@doma.in" required>
                 </div>
-
+                <div class="form-group">
+                    <label for="aboutMe">About me</label>
+                    <textarea class="form-control" form="register" rows="4" cols="50" maxlength="450" name="aboutMe" id="aboutMe" placeholder="Write somethig about youself; where are you from, since when are you travelling, where have you been and what do you want to visit next." ></textarea>
+                </div>
                  <div class="form-group">
                     <label for="admin">Wanna be an admin?</label>
                     <input class="form-control" type="text" name="adminCode" id="admin" placeholder="Admin code">

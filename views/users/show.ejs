@@ -1,26 +1,51 @@
 <% include ../partials/header%>
-   <div class="row">
-       <div class="col-md-4">
-           <h1><%= user.firstName + " " + user.lastName %></h1>
-           <div class="thumbnail">
-               <img src="<%=user.avatar %>" alt="user's profile picture"></img>
-                <div class="caption"><a href="mailto:<%=user.email%>"><em><%=user.email%> </em></a></div>
-            </div>
-           <p>Lorem ipsum dolor sit amet, consectetur adipisicing elit. Odit, labore quidem inventore delectus maxime accusantium eveniet, esse dolores molestiae, fugit modi corporis ipsum nesciunt error provident praesentium dignissimos quis consequatur! Est, incidunt, perferendis suscipit sunt ut aspernatur similique eos consectetur illum minima fugiat unde corporis provident ab officia nam iste.</p>
-       </div>
-       <div class="col-md-8">
-        <h2>User's posts</h2>
+  <div class="row">
+    <div class="col-md-4">
+      <h1><%= user.username %></h1>
+      <h4><%= user.firstName + " " + user.lastName %></h4>
+      <div class="thumbnail">
+          <img src="<%=user.avatar %>" alt="user's profile picture"></img>
+          <div class="caption"><a href="mailto:<%=user.email%>"><em><%=user.email%> </em></a></div>
+      </div>
+      <p><em>Member since: <%= moment(user.createdAt).fromNow() %>
+        <%if(user.createdAt == undefined) {%>
+        <span>forever</span>
+        <% } %>
+      </em></p>
+      <p><%=user.aboutMe%></p>
+      <% if(user.aboutMe == undefined || user.aboutMe.length === 0) { %>
+      <p>This user chose to not write about himself yet. We'll respect their decision and kindly remind that users can update their profile information anytime.</p>
+      <% } %>
+      <% if(currentUser && currentUser._id.equals(user.id) || currentUser && currentUser.isAdmin ){ %>
+        <a class="btn btn-warning" href="/users/<%=user._id%>/edit">Edit profile</a>
+        <form class="delete-form" action="/users/<%=user._id%>?_method=DELETE" method=POST>
+          <button class="delete-form btn btn-danger">Delete account</button>
+        </form>
+      <% } %>
+    </div>
+    <div class="col-md-8">
+      <h2>User's posts</h2>
         <div class="well">
-          <ul>
+          <ul class="list-group">
             <% campgrounds.forEach(campground => { %>
-            <li>
+            <li class="list-group-item">
               <h4><a href="/campgrounds/<%=campground.id%>">  <%= campground.name %> </a></h4>
-              <br>
               <p><em> in <%= campground.location %>, posted <%= moment(campground.createdAt).fromNow() %></em></p>
             </li>
-          </ul>
             <% }) %>  
+          </ul>
         </div>
-       </div>
-   </div>
+       <h2>User's comments</h2>
+        <div class="well">
+          <ul class="list-group">
+            <% comments.forEach(comment => { %>
+            <li class="list-group-item">
+              <p>  <%= comment.text %></p>
+              <p><em> about <a href="/campgrounds/<%=comment.campground.id%>"><%= comment.campground.name %> </a>, posted <%= moment(comment.createdAt).fromNow() %></em></p>
+            </li>
+            <% }) %>  
+          </ul>
+        </div>
+    </div>
+  </div>
 <% include ../partials/footer%>

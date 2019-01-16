@@ -6,10 +6,13 @@ const UserSchema = new mongoose.Schema({
     firstName: String,
     lastName: String,
     email: {type: String, unique: true, required: true},
-    avatar: String, 
+    avatar: String,
+    avatarId: String,
+    aboutMe: String,
     resetPasswordToken: String,
     resetPasswordExpires: Date,
-    isAdmin: {type: Boolean, default: false}
+    isAdmin: {type: Boolean, default: false},
+    createdAt: { type: Date, default: Date.now },
 });
 
 UserSchema.plugin(passportLocalMongoose);

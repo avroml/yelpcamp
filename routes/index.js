@@ -45,6 +45,7 @@ router.post("/register", upload.single('avatar'), async (req, res) => {
             firstName: req.body.firstName,
             lastName: req.body.lastName,
             email: req.body.email,
+            aboutMe: req.body.aboutMe,
         });
     if(req.body.adminCode === "SureWhyNot!") {
         newUser.isAdmin = true;
@@ -60,6 +61,7 @@ router.post("/register", upload.single('avatar'), async (req, res) => {
             }
             if(result) {
                 newUser.avatar = result.secure_url;
+                newUser.avatarId = result.public_id;
             }
         });
     }
@@ -75,7 +77,6 @@ router.post("/register", upload.single('avatar'), async (req, res) => {
                 req.flash("success", "You're registered and logged in. Welcome, " + user.username + "!");
             }
             res.redirect("campgrounds");
-            
         });
     });
 });
@@ -95,7 +96,7 @@ router.post("/login", passport.authenticate('local', {
 router.get("/logout", (req, res) => {
     req.logout();
     req.flash("success", "You're logged out now. See ya!");
-    res.redirect("/");
+    res.redirect("/campgrounds");
 });
 //forgot password
 router.get("/forgot", (req, res) => {
@@ -188,14 +189,14 @@ router.post('/reset/:token', (req, res) => {
       });
     },
     (user, done)  => {
-      var smtpTransport = nodemailer.createTransport({
+      let smtpTransport = nodemailer.createTransport({
         service: 'Gmail', 
         auth: {
           user: 'developmentmail132@gmail.com',
           pass: process.env.GMAILPW
         }
       });
-      var mailOptions = {
+      let mailOptions = {
         to: user.email,
         from: 'developmentmail132@gmail.com',
         subject: 'Your password has been changed',
@@ -224,10 +225,75 @@ router.get("/users/:id", (req, res) => {
             req.flash('error', 'User not found');
             return res.redirect('back');
         }
-        res.render("users/show", {user: foundUser, campgrounds: campgrounds});
-        
+        Comment.find().where('author.id').equals(foundUser._id).exec((err, comments) => {
+            if(err) {
+            req.flash('error', 'User not found');
+            return res.redirect('back');
+        }
+        res.render("users/show", {user: foundUser, campgrounds: campgrounds, comments: comments});
+        })
     })
     }); 
+});
+// user edit page
+router.get("/users/:id/edit", middleware.isAccountOwner, (req, res) => {
+    User.findById(req.params.id, (err, foundUser) => {
+        if(err) {
+            req.flash('error', 'Something went wrong: ' + err.message);
+            return res.redirect('back');
+        }
+        res.render("users/edit", {user: foundUser});
+    });
+});
+// user update route
+router.put("/users/:id", middleware.isAccountOwner, upload.single('avatar'), (req, res) => {
+    User.findById(req.params.id, (err, user) => {
+        if(err){
+            console.log(err);
+            req.flash("error", err.message);
+            res.redirect("back");
+        } else {
+            if (req.file) {
+                {
+                    cloudinary.v2.uploader.destroy(user.avatarId);
+                    let result = cloudinary.v2.uploader.upload(req.file.path);
+                    user.avatarId = result.public_id;
+                    user.avatar = result.secure_url;
+                } if (err) {
+                    req.flash("error", err.message);
+                    return res.redirect("back");
+                }
+            }
+        }
+        user.username = req.body.user.username;
+        user.firstName = req.body.user.firstName;
+        user.lastName = req.body.user.lastName;
+        user.email = req.body.user.email;
+        user.aboutMe = req.body.user.aboutMe;
+        user.save();
+        req.flash("success", "Successfully Updated!");
+        res.redirect("/users/" +user._id);
+    });
+});
+//user destroy route
+router.delete("/users/:id", middleware.isAccountOwner, (req, res) => {
+    User.findById(req.params.id, async (err, user) => {
+        if(err) {
+            req.flash("error", "Something went wrong: " + err);
+            return res.redirect("back");
+        } 
+        try {
+            await cloudinary.v2.uploader.destroy(user.avatarId);
+            user.remove();
+            req.flash("success", "User account was deleted. Woosh!");
+            res.redirect("/campgrounds");
+        } catch(err) {
+            if(err) {
+            req.flash("error", "Something went wrong: " + err);
+            return res.redirect("back");
+            }
+        }
+    });
 });
 
 module.exports = router;

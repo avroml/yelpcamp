@@ -84,7 +84,6 @@ router.post("/", middleware.isLoggedIn, upload.single('image'), (req, res) =>{
             res.redirect('/campgrounds/' + campground.id);
           });
       });
-      
     });
 });
 
