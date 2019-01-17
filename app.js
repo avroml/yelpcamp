@@ -17,7 +17,7 @@ const commentRoutes = require("./routes/comments");
 const campgroundRoutes = require("./routes/campgrounds");
 const indexRoutes = require("./routes/index");
 
-mongoose.connect('mongodb://localhost:27017/yelpcamp', { useNewUrlParser: true }); 
+mongoose.connect(process.env.DATABASEURL, { useNewUrlParser: true }); 
 mongoose.set('useCreateIndex', true);
 app.use(bodyParser.urlencoded({extended:true}));
 app.use(methodOverride("_method"));
@@ -29,7 +29,7 @@ app.use(flash());
 app.locals.moment = require('moment');
 // passport config
 app.use(require("express-session")({
-    secret: "I can\'t get no satisfaction, she loves you, ye, ye, ye!",
+    secret: process.env.EXPRESS_SESSION_SECRET,
     resave: false,
     saveUninitialized: false
 }));

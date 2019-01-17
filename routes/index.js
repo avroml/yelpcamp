@@ -47,19 +47,20 @@ router.post("/register", upload.single('avatar'), async (req, res) => {
             email: req.body.email,
             aboutMe: req.body.aboutMe,
         });
-    if(req.body.adminCode === "SureWhyNot!") {
+    if(req.body.adminCode === process.env.ADMIN_CODE) {
         newUser.isAdmin = true;
     }
     if(!req.file) {
         newUser.avatar = "https://res.cloudinary.com/develo132/image/upload/v1544966114/anyxcrui0elcrbor7e2n.jpg";
     }
     if(req.file) {
-        await cloudinary.v2.uploader.upload(req.file.path, (err, result) => {
+        await cloudinary.v2.uploader.upload(req.file.path, { moderation: "webpurify" }, (err, result) => {
             if(err) {
                 req.flash('error', err.message);
                 res.redirect('back');
             }
             if(result) {
+                console.log(result);
                 newUser.avatar = result.secure_url;
                 newUser.avatarId = result.public_id;
             }
@@ -181,7 +182,7 @@ router.post('/reset/:token', (req, res) => {
                 done(err, user);
               });
             });
-          })
+          });
         } else {
             req.flash("error", "Passwords do not match.");
             return res.redirect('back');
@@ -256,7 +257,8 @@ router.put("/users/:id", middleware.isAccountOwner, upload.single('avatar'), (re
             if (req.file) {
                 {
                     cloudinary.v2.uploader.destroy(user.avatarId);
-                    let result = cloudinary.v2.uploader.upload(req.file.path);
+                    let result = cloudinary.v2.uploader.upload(req.file.path, { moderation: "webpurify" });
+                    console.log(result);
                     user.avatarId = result.public_id;
                     user.avatar = result.secure_url;
                 } if (err) {
